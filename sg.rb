@@ -31,10 +31,40 @@ clbhash["LoadBalancerDescriptions"].each do |clb|
   end
 end
 
-p clbarray
+# Get RDS SecurityGroups
+str = `aws rds describe-db-instances`
+rdshash = JSON.load(str);
+rdsarray = []
+rdshash["DBInstances"].each do |rds|
+  rds["VpcSecurityGroups"].each do |rdssg|
+    rdsarray.push(rdssg["VpcSecurityGroupId"])
+  end
+end
+
+# Get ElastiCache SecurityGroups
+str = `aws elasticache describe-cache-clusters`
+eshash = JSON.load(str);
+esarray = []
+eshash["CacheClusters"].each do |escluster|
+  unless escluster["SecurityGroups"].nil? then
+    escluster["SecurityGroups"].each do |essg|
+      esarray.push(essg["SecurityGroupId"])
+    end
+  end
+end
+
+# Get Redshift SecurityGroups
+str = `aws redshift describe-clusters`
+rshash = JSON.load(str);
+rsarray = []
+rshash["Clusters"].each do |rs|
+  rs["VpcSecurityGroups"].each do |rssg|
+    rsarray.push(rssg["VpcSecurityGroupId"])
+  end
+end
 
 # Output ALL SecurityGroups
-puts "GroupId,GroupName,EC2,ALB,CLB"
+puts "GroupId,GroupName,EC2,ALB,CLB,RDS,ElastiCache,Redshift"
 
 str = `aws ec2 describe-security-groups`
 sghash = JSON.load(str);
@@ -57,6 +87,27 @@ sghash["SecurityGroups"].each do |sg|
 
   # CLB
   if clbarray.include?(sg["GroupId"]) then
+    line = line + ",YES"
+  elsif
+    line = line +  ",NO"
+  end
+
+  # RDS
+  if rdsarray.include?(sg["GroupId"]) then
+    line = line + ",YES"
+  elsif
+    line = line +  ",NO"
+  end
+
+  # ElasticCache 
+  if esarray.include?(sg["GroupId"]) then
+    line = line + ",YES"
+  elsif
+    line = line +  ",NO"
+  end
+
+  # Redshift
+  if rsarray.include?(sg["GroupId"]) then
     line = line + ",YES"
   elsif
     line = line +  ",NO"
