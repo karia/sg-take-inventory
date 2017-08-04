@@ -63,11 +63,37 @@ rshash["Clusters"].each do |rs|
   end
 end
 
-# Output ALL SecurityGroups
-puts "GroupId,GroupName,EC2,ALB,CLB,RDS,ElastiCache,Redshift,Description"
+# Get Lambda SecurityGroups
+str = `aws lambda list-functions`
+lahash = JSON.load(str);
+laarray = []
+lahash["Functions"].each do |la|
+  unless la["VpcConfig"].nil? then
+    la["VpcConfig"]["SecurityGroupIds"].each do |lasg|
+      laarray.push(lasg)
+    end
+  end
+end
 
+# Get SecurityGroups set other securitygroup inbound rule
 str = `aws ec2 describe-security-groups`
 sghash = JSON.load(str);
+irarray = []
+sghash["SecurityGroups"].each do |sg|
+  unless sg["IpPermissions"].nil? then
+    sg["IpPermissions"].each do |ir|
+      unless ir["UserIdGroupPairs"].nil? then
+        ir["UserIdGroupPairs"].each do |irsg|
+          irarray.push(irsg["GroupId"])
+        end
+      end
+    end
+  end
+end
+
+# Output ALL SecurityGroups
+puts "GroupId,GroupName,EC2,ALB,CLB,RDS,ElastiCache,Redshift,Lambda,OtherSG,Description"
+
 sghash["SecurityGroups"].each do |sg|
   line = sg["GroupId"] + "," + sg["GroupName"]
 
@@ -108,6 +134,20 @@ sghash["SecurityGroups"].each do |sg|
 
   # Redshift
   if rsarray.include?(sg["GroupId"]) then
+    line = line + ",YES"
+  elsif
+    line = line +  ",NO"
+  end
+
+  # Lambda
+  if laarray.include?(sg["GroupId"]) then
+    line = line + ",YES"
+  elsif
+    line = line +  ",NO"
+  end
+
+  # OtherSG
+  if irarray.include?(sg["GroupId"]) then
     line = line + ",YES"
   elsif
     line = line +  ",NO"
