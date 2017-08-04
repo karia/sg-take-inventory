@@ -64,7 +64,7 @@ rshash["Clusters"].each do |rs|
 end
 
 # Output ALL SecurityGroups
-puts "GroupId,GroupName,EC2,ALB,CLB,RDS,ElastiCache,Redshift"
+puts "GroupId,GroupName,EC2,ALB,CLB,RDS,ElastiCache,Redshift,Description"
 
 str = `aws ec2 describe-security-groups`
 sghash = JSON.load(str);
@@ -114,6 +114,7 @@ sghash["SecurityGroups"].each do |sg|
   end
 
   # Output
+  line = line + ",\"" + sg["Description"] + "\""
   puts line
 end
 
