@@ -21,7 +21,21 @@ albhash["LoadBalancers"].each do |alb|
   end
 end
 
+# Get CLB(ELB Classic) SecurityGroups
+str = `aws elb describe-load-balancers`
+clbhash = JSON.load(str);
+clbarray = []
+clbhash["LoadBalancerDescriptions"].each do |clb|
+  clb["SecurityGroups"].each do |clbsg|
+    clbarray.push(clbsg)
+  end
+end
+
+p clbarray
+
 # Output ALL SecurityGroups
+puts "GroupId,GroupName,EC2,ALB,CLB"
+
 str = `aws ec2 describe-security-groups`
 sghash = JSON.load(str);
 sghash["SecurityGroups"].each do |sg|
@@ -34,8 +48,15 @@ sghash["SecurityGroups"].each do |sg|
     line = line +  ",NO"
   end
 
-  # ELB
+  # ALB
   if albarray.include?(sg["GroupId"]) then
+    line = line + ",YES"
+  elsif
+    line = line +  ",NO"
+  end
+
+  # CLB
+  if clbarray.include?(sg["GroupId"]) then
     line = line + ",YES"
   elsif
     line = line +  ",NO"
