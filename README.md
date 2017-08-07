@@ -13,7 +13,9 @@ output: csv format
 AWSのセキュリティグループを棚卸しするためのツールです。
 セキュリティグループの一覧と、各サービス（※）で利用されているか否かがCSV形式で出力されます。
 
-※現在対応しているサービス： EC2, ELB(ALBのみ)
+※現在対応しているサービス： EC2, ELBALB,CLB),RDS,ElastiCache,Redshift,Lambda
+
+このほか、他のセキュリティグループのInboundRuleに指定されているセキュリティグループのIDがあれば「OtherSG」欄がYESになります。
 
 ### 備考
 
